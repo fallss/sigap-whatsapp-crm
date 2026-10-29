@@ -1,26 +1,67 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom scrollbars matching Stitch */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Helper color classes from Stitch screens */
+.bg-brand-sidebar {
+  background-color: #0d4a3b;
+}
+.bg-brand-activeNav {
+  background-color: #1c5e4c;
+}
+.bg-brand-hoverNav:hover {
+  background-color: #145543;
+}
+.bg-brand-primary {
+  background-color: #249e6b;
+}
+.bg-brand-primaryHover:hover {
+  background-color: #1f8b5e;
+}
+.text-brand-primary {
+  color: #249e6b;
+}
+.bg-sigap-active-step {
+  background-color: #0e4d3a;
+}
+.bg-sigap-primary {
+  background-color: #199e67;
+}
+.hover\:bg-sigap-primary-hover:hover {
+  background-color: #148556;
+}
+.border-sigap-selected {
+  border-color: #199e67;
+}
+.bg-sigap-selected-tint {
+  background-color: #f1f9f5;
+}
+.stepper-connector {
+  width: 24px;
+  height: 1.5px;
+  background-color: #e5e7eb;
 }
