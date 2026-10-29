@@ -44,7 +44,7 @@ export default function SettingsPage() {
   const [bizName, setBizName] = useState("Barbershop Rapi Bro");
   const [bizAddress, setBizAddress] = useState("Jl. Pahlawan No. 42, Tangerang");
   const [bizHours, setBizHours] = useState("Selasa–Minggu, 09.00–21.00");
-  const [bizPhone, setBizPhone] = useState("+62 812–1100–4455");
+  const [bizPhone, setBizPhone] = useState("+62 895-3461-84632");
 
   // Team
   const [team, setTeam] = useState<TeamMember[]>(INITIAL_TEAM);

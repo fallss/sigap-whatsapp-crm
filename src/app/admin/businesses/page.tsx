@@ -27,7 +27,7 @@ const INITIAL_BUSINESSES: Business[] = [
     type: "Barbershop",
     plan: "Plus",
     owner: "Pak Andi",
-    phone: "+62 812-1100-4455",
+    phone: "+62 895-3461-84632",
     customers: 184,
     lastActive: "4 Nov 2025 · 10:42 WIB",
     status: "Aktif",

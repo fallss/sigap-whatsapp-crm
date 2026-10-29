@@ -507,7 +507,7 @@ export default function DashboardPage() {
                     Nomor Terhubung &amp; Siap Menerima Chat
                   </div>
                   <div className="text-[11px] text-emerald-800 mt-1">
-                    Nomor: +62 812–1100–4455 (Barbershop Rapi Bro). Latensi webhook rata-rata 38ms.
+                    Nomor: +62 895-3461-84632 (Barbershop Rapi Bro). Latensi webhook rata-rata 38ms.
                   </div>
                 </div>
 

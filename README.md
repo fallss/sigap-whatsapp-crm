@@ -35,6 +35,9 @@ Banyak UMKM kehilangan pelanggan setia karena **chat masuk di luar jam kerja tid
 2. Menghitung siklus keterlambatan potong rambut/layanan secara otomatis (misal: siklus 27 hari).
 3. Mengirimkan pengingat WhatsApp personal yang terbukti mendatangkan kembali **~29% hingga 31% pelanggan**.
 
+> 📱 **Nomor WhatsApp Resmi Acuan Proyek**: [`+62 895-3461-84632`](https://wa.me/62895346184632)  
+> *Nomor ini digunakan sebagai acuan integrasi Meta WhatsApp Cloud API, nomor bot demo AI, dan kontak resmi operasional outlet Barbershop Rapi Bro.*
+
 ---
 
 ## ✨ Fitur Utama

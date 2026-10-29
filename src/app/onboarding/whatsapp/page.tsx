@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 
 export default function OnboardingWhatsAppPage() {
   const router = useRouter();
-  const [phoneNumber, setPhoneNumber] = useState("+62 812-1100-4455");
+  const [phoneNumber, setPhoneNumber] = useState("+62 895-3461-84632");
   const [isConnecting, setIsConnecting] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {

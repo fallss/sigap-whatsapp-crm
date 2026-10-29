@@ -629,12 +629,12 @@ export default function PricingPage() {
                       <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-slate-400 block">Nomor BCA Virtual Account:</span>
-                          <span className="font-mono font-bold text-slate-800 text-sm">80777 0812 1100 4455</span>
+                          <span className="font-mono font-bold text-slate-800 text-sm">80777 0895 3461 84632</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => {
-                            navigator.clipboard.writeText("80777081211004455");
+                            navigator.clipboard.writeText("807770895346184632");
                             showToast("Nomor VA BCA berhasil disalin!");
                           }}
                           className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] font-bold"
@@ -648,12 +648,12 @@ export default function PricingPage() {
                       <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between">
                         <div>
                           <span className="text-[10px] text-slate-400 block">Nomor Mandiri Virtual Account:</span>
-                          <span className="font-mono font-bold text-slate-800 text-sm">88908 0812 1100 4455</span>
+                          <span className="font-mono font-bold text-slate-800 text-sm">88908 0895 3461 84632</span>
                         </div>
                         <button
                           type="button"
                           onClick={() => {
-                            navigator.clipboard.writeText("88908081211004455");
+                            navigator.clipboard.writeText("889080895346184632");
                             showToast("Nomor VA Mandiri berhasil disalin!");
                           }}
                           className="px-2.5 py-1 bg-white border border-slate-200 text-slate-700 rounded-lg text-[10px] font-bold"
