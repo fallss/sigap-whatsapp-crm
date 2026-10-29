@@ -14,10 +14,11 @@
 <p align="center">
   <a href="#-tentang-sigap">Tentang Sigap</a> •
   <a href="#-fitur-utama">Fitur Utama</a> •
+  <a href="#-arsitektur-sistem-system-architecture">Arsitektur Sistem</a> •
   <a href="#-arsitektur--teknologi">Teknologi</a> •
-  <a href="#-struktur-proyek">Struktur Proyek</a> •
-  <a href="#-panduan-instalasi">Instalasi</a> •
-  <a href="#-tangkapan-layar">Tangkapan Layar</a> •
+  <a href="#-struktur-arsitektur-proyek">Struktur Proyek</a> •
+  <a href="#-panduan-instalasi--menjalankan-proyek">Instalasi</a> •
+  <a href="#-tangkapan-layar-aplikasi">Tangkapan Layar</a> •
   <a href="#-lisensi">Lisensi</a>
 </p>
 
@@ -92,6 +93,140 @@ graph LR
 Aplikasi Sigap dirancang dengan prinsip **Mobile-First Responsive Design**:
 - **Tampilan Desktop (`≥ 1024px`)**: Sidebar navigasi tetap, multi-kolom split view pada Inbox dan CRM, serta tata letak dashboard yang lapang.
 - **Tampilan HP / Mobile (`< 1024px`)**: Sticky top bar dengan drawer menu animasi (*Framer Motion*), bottom navigation bar untuk akses cepat satu jempol, dan antarmuka tab geser yang ringan.
+
+---
+
+## 🏛️ Arsitektur Sistem (System Architecture)
+
+Sigap mengadopsi arsitektur terdistribusi berbasis **Modular Monolith & Event-Driven Webhooks** yang dirancang untuk keandalan tinggi, pemisahan isolasi multi-tenant antar-UMKM, dan latensi rendah (< 50ms) dalam memproses ribuan interaksi chat WhatsApp.
+
+### 1. Topologi Arsitektur End-to-End
+
+```mermaid
+flowchart TB
+    subgraph CLIENT_TIER["🖥️ Client Tier (Presentation Layer)"]
+        direction LR
+        WA_USER["📱 Pelanggan WhatsApp<br/>(iOS / Android End-Users)"]
+        DASH_DESK["💻 Pemilik & Staf (Desktop)<br/>(Next.js 16 Web Dashboard)"]
+        DASH_MOB["📱 Pemilik & Staf (HP)<br/>(Mobile Responsive Drawer PWA)"]
+    end
+
+    subgraph GATEWAY_TIER["🚪 API Gateway & Ingestion Layer"]
+        META_WEBHOOK["🔗 Meta Webhook Ingestor<br/>(/api/v1/webhook/whatsapp)"]
+        SEC_AUTH["🛡️ Signature & Token Verifier<br/>(HMAC-SHA256 & RBAC Auth)"]
+        ROUTER_EP["⚡ Next.js App Router Engine<br/>(Edge & Server Actions)"]
+    end
+
+    subgraph ENGINE_TIER["⚙️ Core Application Engine"]
+        subgraph AI_PIPELINE["🧠 AI & Guardrails Engine"]
+            INTENT["Intent Matcher & Classifier<br/>(Pencocokan Pola Template)"]
+            GUARD["Batas Aman Guardrails<br/>(Deteksi Keluhan, Tarif & Jam Kerja)"]
+            DRAFT_GEN["Draf Response Synthesizer"]
+        end
+
+        subgraph CRM_PIPELINE["📊 CRM & Retention Machine"]
+            CYCLE_CALC["Siklus Kunjungan Tracker<br/>(Frekuensi Rata-rata 26–27 Hari)"]
+            OVERDUE_DETECTOR["Overdue Detector<br/>(Filter Pelanggan Jatuh Tempo)"]
+            LTV_ANALYTICS["LTV & Transaksi Aggregator"]
+        end
+
+        subgraph SCHEDULER_QUEUE["⏰ Queue & Message Dispatcher"]
+            SCHEDULER["Task Scheduler & Cron<br/>(Pengingat Masal Otomatis)"]
+            RATE_LIMITER["Rate Limiter & Policy Gate<br/>(Anti-Spam & 1000/24h Meta Tier)"]
+        end
+    end
+
+    subgraph EXTERNAL_TIER["☁️ External Cloud Services"]
+        META_GRAPH["💬 Meta WhatsApp Cloud API<br/>(Graph API v21.0 Endpoint)"]
+        PAYMENT_GW["💳 Payment Gateway Provider<br/>(QRIS Nasional & Bank Virtual Account)"]
+    end
+
+    subgraph DATA_TIER["💾 Data & State Persistence Tier"]
+        DB_TENANT["Tenant Configuration Store<br/>(Multi-Tenant Isolation)"]
+        CRM_DB["Customer CRM Database<br/>(LTV, Visit History & Preferences)"]
+        AUDIT_LOGS["Nightly Conversation Logs<br/>(Audit Trail & Latency Telemetries)"]
+    end
+
+    %% Connections
+    WA_USER <-->|Pesan & Respon WA| META_GRAPH
+    META_GRAPH -->|Inbound Webhook HTTP POST| META_WEBHOOK
+    META_WEBHOOK --> SEC_AUTH
+    SEC_AUTH --> ROUTER_EP
+
+    DASH_DESK <-->|HTTPS / REST & Server Actions| ROUTER_EP
+    DASH_MOB <-->|HTTPS / REST & Server Actions| ROUTER_EP
+
+    ROUTER_EP --> AI_PIPELINE
+    ROUTER_EP --> CRM_PIPELINE
+    ROUTER_EP --> SCHEDULER_QUEUE
+
+    AI_PIPELINE -->|Simpan Draf / Log| DB_TENANT
+    CRM_PIPELINE --> CRM_DB
+    SCHEDULER_QUEUE -->|Outbound Utility Payload| META_GRAPH
+    ROUTER_EP <--> PAYMENT_GW
+
+    DB_TENANT --- CRM_DB
+    CRM_DB --- AUDIT_LOGS
+```
+
+---
+
+### 2. Siklus Hidup Pesan Masuk (Inbound Message Lifecycle)
+
+Diagram urutan di bawah ini menggambarkan bagaimana pesan pelanggan dievaluasi melalui filter **Batas Aman (Guardrails)** sebelum diputuskan apakah dibalas otomatis atau dialihkan ke Inbox pemilik:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor C as Pelanggan (WhatsApp)
+    participant M as Meta Cloud API
+    participant W as Sigap Webhook Gateway
+    participant G as Guardrails & AI Engine
+    participant I as Inbox Web App (Pemilik)
+    participant D as CRM Database
+
+    C->>M: Kirim Chat ("Rambut saya kependekan, kecewa")
+    M->>W: Webhook POST (Payload JSON)
+    W->>W: Verifikasi Signature (HMAC-SHA256)
+    W->>G: Evaluasi Konten & Ekstraksi Niat
+
+    alt Terdeteksi Nada Keluhan / Sensitif (Guardrail Aktif)
+        G->>G: Aktifkan Batas Aman (Hentikan Balasan Otomatis)
+        G->>I: Buat Draf Eskalasi + Notifikasi ke Pemilik
+        Note over I: Pemilik menyunting draf balasan di Inbox
+        I->>M: Kirim Balasan yang Disetujui Pemilik
+        M->>C: Chat WhatsApp Diterima Pelanggan
+    else Pertanyaan Standar (Jam Buka / Harga / Lokasi)
+        G->>D: Cari Template Jawaban Cocok
+        D-->>G: Kembalikan Template Relevan (Akurasi 98%)
+        G->>M: Kirim Jawaban Otomatis Instan (Outbound)
+        M->>C: Jawaban Diterima (< 1.5 detik)
+        G->>D: Catat Riwayat ke Log Semalam
+    end
+```
+
+---
+
+### 3. Komponen Utama Arsitektur
+
+1. **Ingestion & Security Gateway**:
+   - Memvalidasi *Webhook Payload* dari Meta menggunakan header `x-hub-signature-256`.
+   - Melindungi endpoint dari serangan *replay attack* dan membatasi *request rate* (Rate Limiting).
+2. **AI Intent & Guardrails Processor**:
+   - Mengevaluasi apakah pertanyaan berada di dalam daftar template aktif milik tenant.
+   - Menerapkan **Batas Aman Berlapis**:
+     - *Batas Keluhan*: Mengalihkan chat ke mode draf saat terdeteksi kata bermuatan komplain.
+     - *Batas Harga*: Mencegah sistem menyebutkan tarif yang belum terdaftar secara resmi.
+     - *Batas Jam Kerja*: Menjaga kesopanan jam kirim pada tengah malam.
+3. **CRM Retention & Predictive Cycle Machine**:
+   - Menghitung interval kunjungan historis per pelanggan menggunakan formula siklus:
+     $$\bar{T}_{\text{siklus}} = \frac{t_{\text{kunjungan terakhir}} - t_{\text{kunjungan pertama}}}{n_{\text{kunjungan}} - 1}$$
+   - Jika $(t_{\text{hari ini}} - t_{\text{kunjungan terakhir}}) \ge \bar{T}_{\text{siklus}}$, sistem menandai pelanggan berstatus **Jatuh Tempo** dan mengantrekan draf pengingat.
+4. **Task Dispatcher & Compliance Gate**:
+   - Mengatur antrean pengiriman pesan utilitas Meta WhatsApp.
+   - Memastikan rasio kirim mematuhi batas akun (*Tier 1: 1.000 pelanggan unik per 24 jam*).
+5. **Multi-Tenant State Isolation**:
+   - Setiap outlet bisnis memiliki ruang konfigurasi, hak akses staf (*Role-Based Access Control*), dan basis data pelanggan yang terisolasi aman.
 
 ---
 
